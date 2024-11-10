@@ -2,7 +2,7 @@
 Producteurs 1
 Herbivores 2
 Carnivores 3
-Décomposeurs 4
+Decomposeurs 4
 Ressource 0
 0 1 0.5
 1 2 0.3
