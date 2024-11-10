@@ -1,0 +1,10 @@
+5 4
+Producteurs 1
+Herbivores 2
+Carnivores 3
+Décomposeurs 4
+Ressource 0
+0 1 0.5
+1 2 0.3
+2 3 0.2
+3 4 0.1
