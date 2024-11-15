@@ -1,58 +1,150 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
-void generateNodesFile() {
-    FILE *file = fopen("nodes.csv", "w");
-    if (file == NULL) {
-        perror("Erreur lors de la création du fichier nodes.csv");
+#define MAX_NODES 100
+#define MAX_EDGES 500
+
+typedef struct Node {
+    int id;
+    char label[50];
+    char trophicLevel[10];
+    char category[20];
+} Node;
+
+typedef struct Edge {
+    int source;
+    int target;
+    float weight;
+    char type[20];
+} Edge;
+
+typedef struct Graph {
+    Node nodes[MAX_NODES];
+    Edge edges[MAX_EDGES];
+    int nodeCount;
+    int edgeCount;
+} Graph;
+
+// Fonction pour charger un reseau depuis un fichier
+void loadGraphFromFile(Graph *g, const char *filename) {
+    FILE *file = fopen(filename, "r");
+    if (!file) {
+        perror("Erreur d'ouverture du fichier");
         exit(EXIT_FAILURE);
     }
-    // En-tête du fichier des nœuds
-    fprintf(file, "Id,Label,TrophicLevel,Category\n");
-    // Données des nœuds
-    fprintf(file, "1,Mûres,PL,Producer\n");
-    fprintf(file, "2,Glands,PL,Producer\n");
-    fprintf(file, "3,Herbes,PL,Producer\n");
-    fprintf(file, "4,Feuilles Vertes,PL,Producer\n");
-    fprintf(file, "5,Litière,1,Resource\n");
-    fprintf(file, "6,Chenille,CI,Consumer\n");
-    fprintf(file, "7,Campagnol,CI,Consumer\n");
-    fprintf(file, "8,Collembole,CI,Consumer\n");
-    fprintf(file, "9,Gamaside,CII,Consumer\n");
-    fprintf(file, "10,Mésange,CII,Consumer\n");
-    fprintf(file, "11,Renard,CIII,Consumer\n");
-    fprintf(file, "12,Martre,CIII,Consumer\n");
-    fprintf(file, "13,Décomposeurs,2,Decomposer\n");
+
+    fscanf(file, "%d %d", &g->nodeCount, &g->edgeCount);
+    for (int i = 0; i < g->nodeCount; i++) {
+        fscanf(file, "%d %s %s %s", &g->nodes[i].id, g->nodes[i].label, g->nodes[i].trophicLevel, g->nodes[i].category);
+    }
+
+    for (int i = 0; i < g->edgeCount; i++) {
+        fscanf(file, "%d %d %f %s", &g->edges[i].source, &g->edges[i].target, &g->edges[i].weight, g->edges[i].type);
+    }
+
     fclose(file);
 }
 
-void generateEdgesFile() {
-    FILE *file = fopen("edges.csv", "w");
-    if (file == NULL) {
-        perror("Erreur lors de la creation du fichier edges.csv");
-        exit(EXIT_FAILURE);
+// Fonction pour afficher un reseau en console
+void displayGraph(Graph *g) {
+    printf("Liste des sommets :\n");
+    for (int i = 0; i < g->nodeCount; i++) {
+        printf("Id: %d, Etiquette: %s, Niveau Trophique: %s, Categorie: %s\n", g->nodes[i].id, g->nodes[i].label, g->nodes[i].trophicLevel, g->nodes[i].category);
     }
-    // En-tête du fichier des arêtes
-    fprintf(file, "Source,Target,Weight,Type\n");
-    // Données des arêtes
-    fprintf(file, "1,6,1,Trophic\n");
-    fprintf(file, "2,7,1,Trophic\n");
-    fprintf(file, "3,6,1,Trophic\n");
-    fprintf(file, "4,6,1,Trophic\n");
-    fprintf(file, "5,8,1,Trophic\n");
-    fprintf(file, "5,9,1,Trophic\n");
-    fprintf(file, "5,13,1,Decomposition\n");
-    fprintf(file, "6,10,1,Trophic\n");
-    fprintf(file, "7,11,1,Trophic\n");
-    fprintf(file, "10,12,1,Trophic\n");
-    fprintf(file, "7,11,1,Trophic\n");
-    fprintf(file, "9,12,1,Trophic\n");
-    fclose(file);
+
+    printf("\nListe des aretes :\n");
+    for (int i = 0; i < g->edgeCount; i++) {
+        printf("Source: %d, Cible: %d, Poids: %.1f, Type: %s\n", g->edges[i].source, g->edges[i].target, g->edges[i].weight, g->edges[i].type);
+    }
+
+    printf("\nSuccesseurs et predecesseurs :\n");
+    for (int i = 0; i < g->nodeCount; i++) {
+        printf("\nSommet %s:\n", g->nodes[i].label);
+
+        printf("Successeurs ---> ");
+        int hasSuccessor = 0;
+        for (int j = 0; j < g->edgeCount; j++) {
+            if (g->edges[j].source == g->nodes[i].id) {
+                printf("|%s|\t ", g->nodes[g->edges[j].target - 1].label);
+                hasSuccessor = 1;
+            }
+        }
+        if (!hasSuccessor) printf("AUCUN");
+
+        printf("\nPredecesseurs ---> ");
+        int hasPredecessor = 0;
+        for (int j = 0; j < g->edgeCount; j++) {
+            if (g->edges[j].target == g->nodes[i].id) {
+                printf(" |%s|\t", g->nodes[g->edges[j].source - 1].label);
+                hasPredecessor = 1;
+            }
+        }
+        if (!hasPredecessor) printf("AUCUN");
+
+        printf("\n");
+    }
+}
+
+// Fonction pour trouver les producteurs primaires
+void findPrimaryProducers(Graph *g) {
+    printf("\nProducteurs primaires:\n");
+    for (int i = 0; i < g->nodeCount; i++) {
+        int hasPredecessor = 0;
+        for (int j = 0; j < g->edgeCount; j++) {
+            if (g->edges[j].target == g->nodes[i].id) {
+                hasPredecessor = 1;
+                break;
+            }
+        }
+        if (!hasPredecessor) {
+            printf("%s\n", g->nodes[i].label);
+        }
+    }
+}
+
+// Fonction pour trouver les predateurs finaux
+void findTopPredators(Graph *g) {
+    printf("\nPredateurs finaux:\n");
+    for (int i = 0; i < g->nodeCount; i++) {
+        int hasSuccessor = 0;
+        for (int j = 0; j < g->edgeCount; j++) {
+            if (g->edges[j].source == g->nodes[i].id) {
+                hasSuccessor = 1;
+                break;
+            }
+        }
+        if (!hasSuccessor) {
+            printf("%s\n", g->nodes[i].label);
+        }
+    }
+}
+
+// Fonction pour calculer les degres de chaque sommet
+void calculateDegrees(Graph *g) {
+    printf("\nDegres des sommets :\n");
+    for (int i = 0; i < g->nodeCount; i++) {
+        int inDegree = 0, outDegree = 0;
+        for (int j = 0; j < g->edgeCount; j++) {
+            if (g->edges[j].target == g->nodes[i].id) inDegree++;
+            if (g->edges[j].source == g->nodes[i].id) outDegree++;
+        }
+        printf("%s:\n Degre entrant = %d et Degre sortant = %d\n \n", g->nodes[i].label, inDegree, outDegree);
+    }
 }
 
 int main() {
-    generateNodesFile();
-    generateEdgesFile();
-    printf("Fichiers nodes.csv et edges.csv produits avec succès !\n");
+    Graph g;
+    char filename[100];
+
+    printf("Entrez le nom du fichier contenant le reseau trophique : ");
+    scanf("%s", filename);
+
+    loadGraphFromFile(&g, filename);
+    displayGraph(&g);
+    findPrimaryProducers(&g);
+    findTopPredators(&g);
+    calculateDegrees(&g);
+
     return 0;
 }
