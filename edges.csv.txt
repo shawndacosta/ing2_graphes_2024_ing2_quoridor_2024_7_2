@@ -1,0 +1,15 @@
+Source,Target,Weight,Type
+1,6,1,Trophic
+2,7,1,Trophic
+3,6,1,Trophic
+4,6,1,Trophic
+5,8,1,Trophic
+5,9,1,Trophic
+5,13,1,Decomposition
+6,10,1,Trophic
+7,11,1,Trophic
+10,12,1,Trophic
+7,11,1,Trophic
+9,12,1,Trophic
+6,7,1,Trophic   
+2,11,1,Trophic 

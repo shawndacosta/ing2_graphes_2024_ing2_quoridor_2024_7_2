@@ -1,0 +1,14 @@
+Id,Label,TrophicLevel,Category
+1,Mûres,PL,Producer
+2,Glands,PL,Producer
+3,Herbes,PL,Producer
+4,Feuilles Vertes,PL,Producer
+5,Litière,1,Resource
+6,Chenille,CI,Consumer
+7,Campagnol,CI,Consumer
+8,Collembole,CI,Consumer
+9,Gamaside,CII,Consumer
+10,Mésange,CII,Consumer
+11,Renard,CIII,Consumer
+12,Martre,CIII,Consumer
+13,Décomposeurs,2,Decomposer
